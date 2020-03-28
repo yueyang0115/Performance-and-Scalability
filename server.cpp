@@ -6,14 +6,24 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
+  if(argc != 4){
+    cerr << "Error: incorrect number of arguments" << endl;
+    exit(EXIT_FAILURE);
+  }
+
+  int cores = atoi(argv[1]);
+  int threads = atoi(argv[2]);
+  int bucket[atoi(argv[3])] = {0};
+
+  //setup server
+  //////////////////////////////////////////////////////////////
   int status;
   int socket_fd;
   struct addrinfo host_info;
   struct addrinfo *host_info_list;
   const char *hostname = NULL;
-  const char *port     = "4444";
+  const char *port     = "12345";
 
   memset(&host_info, 0, sizeof(host_info));
 
@@ -62,13 +72,29 @@ int main(int argc, char *argv[])
     cerr << "Error: cannot accept connection on socket" << endl;
     return -1;
   } //if
+  //////////////////////////////////////////////////////////////////
 
-  char buffer[512];
-  recv(client_connection_fd, buffer, 9, 0);
-  buffer[9] = 0;
+  //receive request
+  char request[20];
+  memset(request, 0, sizeof(request));
+  recv(client_connection_fd, request, sizeof(request), 0);
+  cout << "request: " << request;
+  //sparse the request
+  string l1 = request;
+  int delay = stoi(l1);
+  cout << "delay: " << delay << endl;
+  int num = stoi(l1.substr(l1.find(",") + 1));
+  cout << "number of bucket: " << num << endl;
+  //add delay count to certain bucket
+  bucket[num] += delay;
 
-  cout << "Server received: " << buffer << endl;
+  //send response back
+  string l2 = to_string(bucket[num]) + "\n";
+  const char *response = l2.c_str();
+  cout << response; 
+  send(client_connection_fd, response, strlen(response), 0);
 
+  
   freeaddrinfo(host_info_list);
   close(socket_fd);
 

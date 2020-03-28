@@ -3,23 +3,29 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <string>
+#include <cstdlib>
 
 using namespace std;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
+  if (argc != 3) {
+    cerr << "Error: incorrect number of arguments" << endl;
+    exit(EXIT_FAILURE);
+  }
+
+  int delay = atoi(argv[1]);
+  int bucket = atoi(argv[2]);
+  
+  //setup client
+  /////////////////////////////////////////////////////
   int status;
   int socket_fd;
   struct addrinfo host_info;
   struct addrinfo *host_info_list;
-  const char *hostname = argv[1];
-  const char *port     = "4444";
+  const char *hostname = "0.0.0.0";
+  const char *port     = "12345";
   
-  if (argc < 2) {
-      cout << "Syntax: client <hostname>\n" << endl;
-      return 1;
-  }
-
   memset(&host_info, 0, sizeof(host_info));
   host_info.ai_family   = AF_UNSPEC;
   host_info.ai_socktype = SOCK_STREAM;
@@ -48,10 +54,24 @@ int main(int argc, char *argv[])
     cerr << "  (" << hostname << "," << port << ")" << endl;
     return -1;
   } //if
+  //////////////////////////////////////////////////////////
 
-  const char *message = "hi there!";
-  send(socket_fd, message, strlen(message), 0);
+  //send request
+  srand((unsigned int)time(NULL));
+  int random = rand() % bucket;
+  string l1 = to_string(delay) + "," + to_string(random) + "\n";
+  const char *request = l1.c_str();
+  cout << request << endl;
+  send(socket_fd, request, strlen(request), 0);
 
+  //receive response
+  char response[20];
+  memset(response, 0, sizeof(request));
+  recv(socket_fd, response, sizeof(response), 0);
+  string l2 = response;
+  int value = stoi(l2);
+  cout << "new value in bucket[" << random << "]: " << value << endl;
+  
   freeaddrinfo(host_info_list);
   close(socket_fd);
 
