@@ -17,6 +17,32 @@ void delayloop(double req_delay){
   } while (elapsed_seconds < req_delay);
 }
 
+//create a thread per request
+void *processRequest(void *varg){
+  /*
+  //receive request
+    char request[20];
+    memset(request, 0, sizeof(request));
+    recv(client_fd, request, sizeof(request), 0);
+    cout << "request: " << request;
+    //sparse the request
+    string l1 = request;
+    double delay = stoi(l1);
+    cout << "delay: " << delay << endl;
+    int num = stoi(l1.substr(l1.find(",") + 1));
+    cout << "number of bucket: " << num << endl;
+    //delay loop
+    delayloop(delay);
+    //add delay count to certain bucket
+    bucket[num] += delay;
+
+    //send response back
+    string l2 = to_string(bucket[num]) + "\n";
+    const char *response = l2.c_str();
+    cout << "response: " << response; 
+    send(client_fd, response, strlen(response), 0);
+  */
+}
 
 // ./server num_of_cores threading_strategy num_of_buckets
 int main(int argc, char *argv[]){
@@ -79,9 +105,9 @@ int main(int argc, char *argv[]){
   cout << "Waiting for connection on port " << port << endl;
   struct sockaddr_storage socket_addr;
   socklen_t socket_addr_len = sizeof(socket_addr);
-  int client_connection_fd;
-  client_connection_fd = accept(socket_fd, (struct sockaddr *)&socket_addr, &socket_addr_len);
-  if (client_connection_fd == -1) {
+  int client_fd;
+  client_fd = accept(socket_fd, (struct sockaddr *)&socket_addr, &socket_addr_len);
+  if (client_fd == -1) {
     cerr << "Error: cannot accept connection on socket" << endl;
     return -1;
   } //if
@@ -91,7 +117,7 @@ int main(int argc, char *argv[]){
     //receive request
     char request[20];
     memset(request, 0, sizeof(request));
-    recv(client_connection_fd, request, sizeof(request), 0);
+    recv(client_fd, request, sizeof(request), 0);
     cout << "request: " << request;
     //sparse the request
     string l1 = request;
@@ -108,7 +134,7 @@ int main(int argc, char *argv[]){
     string l2 = to_string(bucket[num]) + "\n";
     const char *response = l2.c_str();
     cout << "response: " << response; 
-    send(client_connection_fd, response, strlen(response), 0);
+    send(client_fd, response, strlen(response), 0);
   }
   
   freeaddrinfo(host_info_list);
