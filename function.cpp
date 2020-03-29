@@ -61,7 +61,7 @@ int build_server(const char * port) {
     return -1;
   }
 
-  cout << "Waiting for connection on port " << port << endl;
+  //cout << "Waiting for connection on port " << port << endl;
   freeaddrinfo(host_info_list);
   return socket_fd;
 }
@@ -92,7 +92,7 @@ int build_client(const char * hostname, const char * port) {
     return -1;
   }
 
-  cout << "Connecting to " << hostname << " on port " << port << "..." << endl;
+  //cout << "Connecting to " << hostname << " on port " << port << "..." << endl;
 
   status = connect(socket_fd, host_info_list->ai_addr, host_info_list->ai_addrlen);
   if (status == -1) {
@@ -101,7 +101,7 @@ int build_client(const char * hostname, const char * port) {
     return -1;
   }
 
-  std::cout << "Connect to server successfully\n";
+  //std::cout << "Connect to server successfully\n";
   freeaddrinfo(host_info_list);
   return socket_fd;
 }

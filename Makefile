@@ -4,9 +4,9 @@ all: $(TARGETS)
 clean:
 	rm -f $(TARGETS)
 
-client: client.cpp
-	g++ -g -o $@ $< function.cpp
+client: client.cpp thread_arg.h
+	g++ -g -o $@ $< function.cpp -lpthread
 
-server: server.cpp
-	g++ -g -o $@ $< function.cpp
+server: server.cpp thread_arg.h
+	g++ -g -o $@ $< function.cpp -lpthread
 
