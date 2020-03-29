@@ -8,6 +8,7 @@
 
 using namespace std;
 
+// ./client delay_count num_of_bucket
 int main(int argc, char *argv[]){
   if (argc != 3) {
     cerr << "Error: incorrect number of arguments" << endl;
@@ -56,21 +57,23 @@ int main(int argc, char *argv[]){
   } //if
   //////////////////////////////////////////////////////////
 
-  //send request
   srand((unsigned int)time(NULL));
-  int random = rand() % bucket;
-  string l1 = to_string(delay) + "," + to_string(random) + "\n";
-  const char *request = l1.c_str();
-  cout << request << endl;
-  send(socket_fd, request, strlen(request), 0);
+  for(int i = 0; i < 100; i++){
+    //send request
+    int random = rand() % bucket;
+    string l1 = to_string(delay) + "," + to_string(random) + "\n";
+    const char *request = l1.c_str();
+    cout << request << endl;
+    send(socket_fd, request, strlen(request), 0);
 
-  //receive response
-  char response[20];
-  memset(response, 0, sizeof(request));
-  recv(socket_fd, response, sizeof(response), 0);
-  string l2 = response;
-  int value = stoi(l2);
-  cout << "new value in bucket[" << random << "]: " << value << endl;
+    //receive response
+    char response[20];
+    memset(response, 0, sizeof(request));
+    recv(socket_fd, response, sizeof(response), 0);
+    string l2 = response;
+    double value = stoi(l2);
+    cout << "new value in bucket[" << random << "]: " << value << endl;
+  }
   
   freeaddrinfo(host_info_list);
   close(socket_fd);
