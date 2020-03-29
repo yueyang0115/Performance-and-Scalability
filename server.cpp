@@ -26,7 +26,9 @@ void delayloop(double req_delay) {
 void * processRequest(void * arg) {
   Thread_arg * thr_arg = (Thread_arg *)arg;
   int client_fd = thr_arg->client_fd;
-  double * bucket = thr_arg->bucket;
+  int * bucket = thr_arg->bucket;
+
+  pthread_mutex_lock(&mutex);
 
   //receive request
   char request[20];
@@ -45,9 +47,7 @@ void * processRequest(void * arg) {
   delayloop(delay);
 
   //add delay count to certain bucket
-  pthread_mutex_lock(&mutex);
   bucket[num] += delay;
-  pthread_mutex_unlock(&mutex);
 
   //send response back
   string l2 = to_string(bucket[num]) + "\n";
@@ -55,6 +55,7 @@ void * processRequest(void * arg) {
   cout << "response: " << response;
   send(client_fd, response, strlen(response), 0);
 
+  pthread_mutex_unlock(&mutex);
   return NULL;
 }
 
@@ -69,7 +70,7 @@ int main(int argc, char * argv[]) {
   int cores = atoi(argv[1]);
   int threads = atoi(argv[2]);
   int size = atoi(argv[3]);
-  double bucket[size] = {0};
+  int bucket[size] = {0};
 
   //setup server
   int socket_fd = build_server("12345");
@@ -83,7 +84,6 @@ int main(int argc, char * argv[]) {
       std::cout << "Error in build server!\n";
       return -1;
     }
-
     //create a thread per request
     pthread_t thread;
     Thread_arg * thr_arg = new Thread_arg();
@@ -93,7 +93,7 @@ int main(int argc, char * argv[]) {
   }
 
   //freeaddrinfo(host_info_list);
-  close(socket_fd);
+  //close(socket_fd);
 
   return 0;
 }
