@@ -51,7 +51,7 @@ void * processRequest(void * arg) {
   //send response back
   string l2 = to_string(bucket[num]) + "\n";
   const char * response = l2.c_str();
-  cout << "response: " << response;
+  cout << "response: [" << num << "]" << response;
   send(client_fd, response, strlen(response), 0);
 
   return NULL;
@@ -75,10 +75,11 @@ int main(int argc, char * argv[]) {
   string ip;
 
   pthread_t * threads;
-  threads = (pthread_t *)malloc(100 * sizeof(pthread_t));
+  int numThreads = 500;
+  threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
   //handle request
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < numThreads; i++) {
     //connect with each client
     int client_fd = server_accept(socket_fd, &ip);
     if (client_fd == -1) {
@@ -92,7 +93,7 @@ int main(int argc, char * argv[]) {
     thr_arg->bucket = bucket;
     pthread_create(&threads[i], NULL, processRequest, thr_arg);
   }
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < numThreads; i++) {
     pthread_join(threads[i], NULL);
   }
 

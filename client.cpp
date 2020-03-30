@@ -20,7 +20,7 @@ void * sendRequest(void * arg) {
   int threadID = thr_arg->threadID;
   int socket_fd = thr_arg->client_fd;
 
-  //pthread_mutex_lock(&mutex);
+  
   //send request
   int random = rand() % bucket;
   string l1 = to_string(delay) + "," + to_string(random) + "\n";
@@ -37,7 +37,7 @@ void * sendRequest(void * arg) {
   cout << "new value in bucket[" << random << "]: " << value << endl;
   close(socket_fd);
 
-  //pthread_mutex_unlock(&mutex);
+  
   return NULL;
 }
 
@@ -51,10 +51,11 @@ int main(int argc, char * argv[]) {
   int bucket = atoi(argv[2]);
 
   pthread_t * threads;
-  threads = (pthread_t *)malloc(100 * sizeof(pthread_t));
+  int numThreads = 500;
+  threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
   srand((unsigned int)time(NULL));
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < numThreads; i++) {
     //setup client
     const char * hostname = "0.0.0.0";
     const char * port = "12345";
@@ -71,7 +72,7 @@ int main(int argc, char * argv[]) {
     thr_arg->client_fd = socket_fd;
     pthread_create(&threads[i], NULL, sendRequest, thr_arg);
   }
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < numThreads; i++) {
     pthread_join(threads[i], NULL);
   }
 
