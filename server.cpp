@@ -9,6 +9,10 @@
 
 #include "function.h"
 #include "thread_arg.h"
+
+#define CREATE_PER_THREAD 0
+#define PRE_CREATE 1
+
 using namespace std;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -68,6 +72,10 @@ int main(int argc, char * argv[]) {
 
   int cores = atoi(argv[1]);
   int thrd = atoi(argv[2]);
+  if (thrd != CREATE_PER_THREAD || thrd != PRE_CREATE) {
+    cerr << "Error: invalid threading strategy" << endl;
+    exit(EXIT_FAILURE);
+  }
   int size = atoi(argv[3]);
   int bucket[size] = {0};
 
@@ -75,34 +83,34 @@ int main(int argc, char * argv[]) {
   int socket_fd = build_server("12345");
   string ip;
 
-  //pthread_t * threads;
-  int numThreads = 10000;
-  //threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
+  if (thrd == CREATE_PER_THREAD) {
+    //pthread_t * threads;
+    int numThreads = 10000;
+    //threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
-  //handle request
-  for (int i = 0; i < numThreads; i++) {
-    //connect with each client
-    int client_fd = server_accept(socket_fd, &ip);
-    if (client_fd == -1) {
-      std::cout << "Error in build server!\n";
-      return -1;
+    //handle request
+    for (int i = 0; i < numThreads; i++) {
+      //connect with each client
+      int client_fd = server_accept(socket_fd, &ip);
+      if (client_fd == -1) {
+        std::cout << "Error in build server!\n";
+        return -1;
+      }
+      cout << "socket " << i << " created" << endl;
+      //create a thread per request
+      pthread_t thread;
+      Thread_arg * thr_arg = new Thread_arg();
+      thr_arg->client_fd = client_fd;
+      thr_arg->bucket = bucket;
+      pthread_create(&thread, NULL, processRequest, thr_arg);
+      pthread_detach(thread);
     }
-    cout << "socket " << i << " created" << endl;
-    //create a thread per request
-    pthread_t thread;
-    Thread_arg * thr_arg = new Thread_arg();
-    thr_arg->client_fd = client_fd;
-    thr_arg->bucket = bucket;
-    pthread_create(&thread, NULL, processRequest, thr_arg);
-    pthread_detach(thread);
   }
-  /*
-  for (int i = 0; i < numThreads; i++) {
-    pthread_join(threads[i], NULL);
+
+  if (thrd == PRE_CREATE) {
+    //TODO
+    return 0;
   }
-  */
-  //freeaddrinfo(host_info_list);
-  //close(socket_fd);
 
   return 0;
 }
