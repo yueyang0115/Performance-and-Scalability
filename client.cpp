@@ -19,14 +19,13 @@ void * sendRequest(void * arg) {
   int delay = thr_arg->delay;
   int threadID = thr_arg->threadID;
   int socket_fd = thr_arg->client_fd;
-  cout << "thread " << threadID << " sends Request" << endl;
 
   pthread_mutex_lock(&mutex);
   //send request
   int random = rand() % bucket;
   string l1 = to_string(delay) + "," + to_string(random) + "\n";
   const char * request = l1.c_str();
-  cout << request;
+  cout << "thread " << threadID << " sends Request: " << request;
   send(socket_fd, request, strlen(request), 0);
 
   //receive response
@@ -52,7 +51,7 @@ int main(int argc, char * argv[]) {
   int bucket = atoi(argv[2]);
 
   srand((unsigned int)time(NULL));
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < 10; i++) {
     //setup client
     const char * hostname = "0.0.0.0";
     const char * port = "12345";

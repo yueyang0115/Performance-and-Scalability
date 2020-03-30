@@ -77,13 +77,14 @@ int main(int argc, char * argv[]) {
   string ip;
 
   //handle request
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < 10; i++) {
     //connect with each client
     int client_fd = server_accept(socket_fd, &ip);
     if (client_fd == -1) {
       std::cout << "Error in build server!\n";
       return -1;
     }
+    cout << "socket " << i << " created" << endl;
     //create a thread per request
     pthread_t thread;
     Thread_arg * thr_arg = new Thread_arg();
