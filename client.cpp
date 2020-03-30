@@ -1,7 +1,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
+#include <sys/time.h>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -10,7 +10,18 @@
 #include "function.h"
 #include "thread_arg.h"
 using namespace std;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+//pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void delayloop(double req_delay) {
+  struct timeval start, check, end;
+  double elapsed_seconds;
+  gettimeofday(&start, NULL);
+  do {
+    gettimeofday(&check, NULL);
+    elapsed_seconds = (check.tv_sec + (check.tv_usec / 1000000.0)) -
+                      (start.tv_sec + (start.tv_usec / 1000000.0));
+  } while (elapsed_seconds < req_delay);
+}
 
 // ./client delay_count num_of_bucket
 void * sendRequest(void * arg) {
@@ -20,7 +31,7 @@ void * sendRequest(void * arg) {
   int threadID = thr_arg->threadID;
   int socket_fd = thr_arg->client_fd;
 
-  pthread_mutex_lock(&mutex);
+  //pthread_mutex_lock(&mutex);
   //send request
   int random = rand() % bucket;
   string l1 = to_string(delay) + "," + to_string(random) + "\n";
@@ -37,7 +48,7 @@ void * sendRequest(void * arg) {
   cout << "new value in bucket[" << random << "]: " << value << endl;
   close(socket_fd);
 
-  pthread_mutex_unlock(&mutex);
+  //pthread_mutex_unlock(&mutex);
   return NULL;
 }
 
@@ -51,7 +62,7 @@ int main(int argc, char * argv[]) {
   int bucket = atoi(argv[2]);
 
   srand((unsigned int)time(NULL));
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 100; i++) {
     //setup client
     const char * hostname = "0.0.0.0";
     const char * port = "12345";
@@ -70,6 +81,7 @@ int main(int argc, char * argv[]) {
     pthread_create(&thread, NULL, sendRequest, thr_arg);
   }
 
+  delayloop(5);
   //freeaddrinfo(host_info_list);
   //close(socket_fd);
 

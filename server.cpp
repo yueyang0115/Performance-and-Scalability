@@ -28,34 +28,32 @@ void * processRequest(void * arg) {
   int client_fd = thr_arg->client_fd;
   int * bucket = thr_arg->bucket;
 
-  pthread_mutex_lock(&mutex);
-
   //receive request
   char request[20];
   memset(request, 0, sizeof(request));
   recv(client_fd, request, sizeof(request), 0);
-  cout << "request: " << request;
-
+  
   //parse the request
   string l1 = request;
   double delay = stoi(l1);
-  cout << "delay: " << delay << endl;
   int num = stoi(l1.substr(l1.find(",") + 1));
-  cout << "number of bucket: " << num << endl;
+  cout << "request received, " << "delay: " << delay << ", number of bucket: " << num << endl;
 
   //delay loop
   delayloop(delay);
 
   //add delay count to certain bucket
+  //pthread_mutex_lock(&mutex);
+  //cout << "?????" << endl;
   bucket[num] += delay;
-
+  //pthread_mutex_unlock(&mutex);
+  
   //send response back
   string l2 = to_string(bucket[num]) + "\n";
   const char * response = l2.c_str();
   cout << "response: " << response;
   send(client_fd, response, strlen(response), 0);
 
-  pthread_mutex_unlock(&mutex);
   return NULL;
 }
 
@@ -77,7 +75,7 @@ int main(int argc, char * argv[]) {
   string ip;
 
   //handle request
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 100; i++) {
     //connect with each client
     int client_fd = server_accept(socket_fd, &ip);
     if (client_fd == -1) {
