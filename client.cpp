@@ -1,7 +1,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <sys/time.h>
+
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -11,17 +11,6 @@
 #include "thread_arg.h"
 using namespace std;
 //pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
-void delayloop(double req_delay) {
-  struct timeval start, check, end;
-  double elapsed_seconds;
-  gettimeofday(&start, NULL);
-  do {
-    gettimeofday(&check, NULL);
-    elapsed_seconds = (check.tv_sec + (check.tv_usec / 1000000.0)) -
-                      (start.tv_sec + (start.tv_usec / 1000000.0));
-  } while (elapsed_seconds < req_delay);
-}
 
 // ./client delay_count num_of_bucket
 void * sendRequest(void * arg) {
@@ -61,6 +50,9 @@ int main(int argc, char * argv[]) {
   int delay = atoi(argv[1]);
   int bucket = atoi(argv[2]);
 
+  pthread_t * threads;
+  threads = (pthread_t *)malloc(100 * sizeof(pthread_t));
+
   srand((unsigned int)time(NULL));
   for (int i = 0; i < 100; i++) {
     //setup client
@@ -72,16 +64,17 @@ int main(int argc, char * argv[]) {
     }
 
     cout << "create a thread, ID is : " << i << endl;
-    pthread_t thread;
     Thread_arg * thr_arg = new Thread_arg();
     thr_arg->delay = delay;
     thr_arg->bucketID = bucket;
     thr_arg->threadID = i;
     thr_arg->client_fd = socket_fd;
-    pthread_create(&thread, NULL, sendRequest, thr_arg);
+    pthread_create(&threads[i], NULL, sendRequest, thr_arg);
+  }
+  for (int i = 0; i < 100; i++) {
+    pthread_join(threads[i], NULL);
   }
 
-  delayloop(5);
   //freeaddrinfo(host_info_list);
   //close(socket_fd);
 

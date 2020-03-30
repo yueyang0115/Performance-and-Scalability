@@ -13,7 +13,7 @@ using namespace std;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void delayloop(double req_delay) {
-  struct timeval start, check, end;
+  struct timeval start, check;
   double elapsed_seconds;
   gettimeofday(&start, NULL);
   do {
@@ -32,22 +32,23 @@ void * processRequest(void * arg) {
   char request[20];
   memset(request, 0, sizeof(request));
   recv(client_fd, request, sizeof(request), 0);
-  
+
   //parse the request
   string l1 = request;
   double delay = stoi(l1);
   int num = stoi(l1.substr(l1.find(",") + 1));
-  cout << "request received, " << "delay: " << delay << ", number of bucket: " << num << endl;
+  cout << "request received, "
+       << "delay: " << delay << ", number of bucket: " << num << endl;
 
   //delay loop
   delayloop(delay);
 
   //add delay count to certain bucket
   //pthread_mutex_lock(&mutex);
-  //cout << "?????" << endl;
+  cout << "?????" << endl;
   bucket[num] += delay;
   //pthread_mutex_unlock(&mutex);
-  
+
   //send response back
   string l2 = to_string(bucket[num]) + "\n";
   const char * response = l2.c_str();
@@ -66,13 +67,16 @@ int main(int argc, char * argv[]) {
   }
 
   int cores = atoi(argv[1]);
-  int threads = atoi(argv[2]);
+  int thrd = atoi(argv[2]);
   int size = atoi(argv[3]);
   int bucket[size] = {0};
 
   //setup server
   int socket_fd = build_server("12345");
   string ip;
+
+  pthread_t * threads;
+  threads = (pthread_t *)malloc(100 * sizeof(pthread_t));
 
   //handle request
   for (int i = 0; i < 100; i++) {
@@ -84,11 +88,13 @@ int main(int argc, char * argv[]) {
     }
     cout << "socket " << i << " created" << endl;
     //create a thread per request
-    pthread_t thread;
     Thread_arg * thr_arg = new Thread_arg();
     thr_arg->client_fd = client_fd;
     thr_arg->bucket = bucket;
-    pthread_create(&thread, NULL, processRequest, thr_arg);
+    pthread_create(&threads[i], NULL, processRequest, thr_arg);
+  }
+  for (int i = 0; i < 100; i++) {
+    pthread_join(threads[i], NULL);
   }
 
   //freeaddrinfo(host_info_list);
