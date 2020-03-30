@@ -74,9 +74,9 @@ int main(int argc, char * argv[]) {
   int socket_fd = build_server("12345");
   string ip;
 
-  pthread_t * threads;
+  //pthread_t * threads;
   int numThreads = 500;
-  threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
+  //threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
   //handle request
   for (int i = 0; i < numThreads; i++) {
@@ -88,15 +88,18 @@ int main(int argc, char * argv[]) {
     }
     cout << "socket " << i << " created" << endl;
     //create a thread per request
+    pthread_t thread;
     Thread_arg * thr_arg = new Thread_arg();
     thr_arg->client_fd = client_fd;
     thr_arg->bucket = bucket;
-    pthread_create(&threads[i], NULL, processRequest, thr_arg);
+    pthread_create(&thread, NULL, processRequest, thr_arg);
+    pthread_detach(thread);
   }
+  /*
   for (int i = 0; i < numThreads; i++) {
     pthread_join(threads[i], NULL);
   }
-
+  */
   //freeaddrinfo(host_info_list);
   //close(socket_fd);
 
