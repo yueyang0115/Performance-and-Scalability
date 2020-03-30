@@ -72,7 +72,7 @@ int main(int argc, char * argv[]) {
 
   int cores = atoi(argv[1]);
   int thrd = atoi(argv[2]);
-  if (thrd != CREATE_PER_THREAD || thrd != PRE_CREATE) {
+  if (thrd != CREATE_PER_THREAD && thrd != PRE_CREATE) {
     cerr << "Error: invalid threading strategy" << endl;
     exit(EXIT_FAILURE);
   }
@@ -85,7 +85,7 @@ int main(int argc, char * argv[]) {
 
   if (thrd == CREATE_PER_THREAD) {
     //pthread_t * threads;
-    int numThreads = 10000;
+    int numThreads = 2000;
     //threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
     //handle request

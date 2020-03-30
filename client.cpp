@@ -49,7 +49,7 @@ int main(int argc, char * argv[]) {
   int bucket = atoi(argv[2]);
 
   //pthread_t * threads;
-  int numThreads = 10000;
+  int numThreads = 2000;
   //threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
   srand((unsigned int)time(NULL));
