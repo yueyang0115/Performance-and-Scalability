@@ -44,10 +44,9 @@ void * processRequest(void * arg) {
   delayloop(delay);
 
   //add delay count to certain bucket
-  //pthread_mutex_lock(&mutex);
-  cout << "?????" << endl;
+  pthread_mutex_lock(&mutex);
   bucket[num] += delay;
-  //pthread_mutex_unlock(&mutex);
+  pthread_mutex_unlock(&mutex);
 
   //send response back
   string l2 = to_string(bucket[num]) + "\n";
