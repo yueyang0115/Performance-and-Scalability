@@ -54,6 +54,7 @@ void * processRequest(void * arg) {
   cout << "response: [" << num << "]" << response;
   send(client_fd, response, strlen(response), 0);
 
+  close(client_fd);
   return NULL;
 }
 
@@ -75,7 +76,7 @@ int main(int argc, char * argv[]) {
   string ip;
 
   //pthread_t * threads;
-  int numThreads = 500;
+  int numThreads = 10000;
   //threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
   //handle request
