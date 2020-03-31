@@ -30,7 +30,12 @@ void * sendRequest(void * arg) {
   //receive response
   char response[20];
   memset(response, 0, sizeof(request));
-  recv(socket_fd, response, sizeof(response), 0);
+  int len = recv(socket_fd, response, sizeof(response), 0);
+  if (len < 0) {
+    close(socket_fd);
+    return NULL;
+  }
+
   string l2 = response;
   double value = stoi(l2);
   cout << "new value in bucket[" << random << "]: " << value << endl;
