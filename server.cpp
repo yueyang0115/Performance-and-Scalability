@@ -107,20 +107,18 @@ int main(int argc, char * argv[]) {
   }
 
   if (thrd == PRE_CREATE) {
-    int client_fd = server_accept(socket_fd, &ip);
-    if (client_fd == -1) {
-      std::cout << "Error in build server!\n";
-      return -1;
+    int numThreads = 500;
+    pthread_t *threads;
+    threads = (pthread_t *) malloc(numThreads * sizeof(pthread_t));
+    Thread_arg * thr_arg = new Thread_arg();
+    thr_arg->bucket = bucket;
+    thr_arg->socket_fd = socket_fd;
+    for (int i = 0; i < numThreads; i++) {
+      pthread_create(&threads[i], NULL, procRequests, thr_arg);
     }
-    for (int i = 0; i < 100; i++) {
-      pthread_t thread;
-      Thread_arg * thr_arg = new Thread_arg();
-      thr_arg->bucket = bucket;
-      thr_arg->socket_fd = socket_fd;
-      pthread_create(&thread, NULL, procRequests, thr_arg);
+    for(int i = 0; i < numThreads; i++){
+      pthread_join(threads[i], NULL);
     }
-    close(client_fd);
-    while(1){}
   }
   return 0;
 }
