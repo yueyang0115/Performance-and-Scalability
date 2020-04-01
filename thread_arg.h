@@ -11,7 +11,6 @@ class Thread_arg {
   int * bucket;
   int client_fd;
   int socket_fd;
-  std::string ip;
   int delay;
   int bucketID;
   int threadID;

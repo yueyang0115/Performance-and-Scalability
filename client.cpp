@@ -52,9 +52,9 @@ int main(int argc, char * argv[]) {
   int delay = atoi(argv[1]);
   int bucket = atoi(argv[2]);
 
-  //pthread_t * threads;
+  pthread_t * threads;
   int numThreads = 2000;
-  //threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
+  threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
   srand((unsigned int)time(NULL));
   for (int i = 0; i < numThreads; i++) {
@@ -67,22 +67,17 @@ int main(int argc, char * argv[]) {
     }
 
     cout << "create a thread, ID is : " << i << endl;
-    pthread_t thread;
     Thread_arg * thr_arg = new Thread_arg();
     thr_arg->delay = delay;
     thr_arg->bucketID = bucket;
     thr_arg->threadID = i;
     thr_arg->client_fd = socket_fd;
-    pthread_create(&thread, NULL, sendRequest, thr_arg);
-    pthread_detach(thread);
+    pthread_create(&threads[i], NULL, sendRequest, thr_arg);
+    pthread_detach(threads[i]);
   }
-  /*
   for (int i = 0; i < numThreads; i++) {
     pthread_join(threads[i], NULL);
   }
-  */
-  //freeaddrinfo(host_info_list);
-  //close(socket_fd);
-
+  
   return 0;
 }
