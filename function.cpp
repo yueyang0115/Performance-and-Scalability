@@ -37,7 +37,7 @@ void * processRequest(void * arg) {
   char request[20];
   memset(request, 0, sizeof(request));
   int len = recv(client_fd, request, sizeof(request), 0);
-  if (len < 0) {
+  if (len <= 0) {
     close(client_fd);
     return NULL;
   }

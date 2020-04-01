@@ -87,12 +87,14 @@ int main(int argc, char * argv[]) {
     //int numThreads = 2000;
     //threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
-    for (int i = 0; i < numThreads; i++) {
+    int i = 0;
+    //for (int i = 0; i < numThreads; i++) {
+    while (1) {
       //connect with each client
       int client_fd = server_accept(socket_fd, &ip);
       if (client_fd == -1) {
         std::cout << "Error in build server!\n";
-        return -1;
+        continue;
       }
       cout << "socket " << i << " created" << endl;
 
@@ -103,20 +105,21 @@ int main(int argc, char * argv[]) {
       thr_arg->bucket = bucket;
       pthread_create(&thread, NULL, processRequest, thr_arg);
       pthread_detach(thread);
+      i++;
     }
   }
 
   if (thrd == PRE_CREATE) {
     int numThreads = 500;
-    pthread_t *threads;
-    threads = (pthread_t *) malloc(numThreads * sizeof(pthread_t));
+    pthread_t * threads;
+    threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
     Thread_arg * thr_arg = new Thread_arg();
     thr_arg->bucket = bucket;
     thr_arg->socket_fd = socket_fd;
     for (int i = 0; i < numThreads; i++) {
       pthread_create(&threads[i], NULL, procRequests, thr_arg);
     }
-    for(int i = 0; i < numThreads; i++){
+    for (int i = 0; i < numThreads; i++) {
       pthread_join(threads[i], NULL);
     }
   }

@@ -32,7 +32,6 @@ void * sendRequest(void * arg) {
   memset(response, 0, sizeof(request));
   int len = recv(socket_fd, response, sizeof(response), 0);
   if (len < 0) {
-    close(socket_fd);
     return NULL;
   }
 
