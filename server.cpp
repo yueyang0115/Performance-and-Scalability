@@ -38,6 +38,7 @@ double calc_time(struct timespec start, struct timespec end) {
   }
 }
 
+//create a thread per request
 void * procOneRequest(void * arg) {
   Thread_arg * thr_arg = (Thread_arg *)arg;
   int client_fd = thr_arg->client_fd;
@@ -79,6 +80,7 @@ void * procOneRequest(void * arg) {
   return NULL;
 }
 
+//pre-create threads
 void * procRequests(void * arg) {
   while (1) {
     Thread_arg * thr_arg = (Thread_arg *)arg;
@@ -127,9 +129,9 @@ void * procRequests(void * arg) {
   }
 }
 
-// ./server threading_strategy num_of_buckets
+// ./server threading_strategy
 int main(int argc, char * argv[]) {
-  if (argc != 3) {
+  if (argc != 2) {
     cerr << "Error: incorrect number of arguments" << endl;
     exit(EXIT_FAILURE);
   }
@@ -139,16 +141,21 @@ int main(int argc, char * argv[]) {
     cerr << "Error: invalid threading strategy" << endl;
     exit(EXIT_FAILURE);
   }
-  int size = atoi(argv[2]);
-  int bucket[size] = {0};
+  //int size = atoi(argv[2]);
 
   //setup server
   int socket_fd = build_server("12345");
   string ip;
   int numThreads = 2000;
   int numRequest = 0;
-  server_accept(socket_fd, &ip);
-
+  int bucket_fd = server_accept(socket_fd, &ip);
+  int size;
+  //receive bucket size
+  recv(bucket_fd, &size, sizeof(size), 0);
+  cout << size << endl;
+  close(bucket_fd);
+  int bucket[size] = {0};
+  
   //start timing
   struct timespec start_time, end_time;
   clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -173,7 +180,8 @@ int main(int argc, char * argv[]) {
       //check timing
       clock_gettime(CLOCK_MONOTONIC, &end_time);
       double elapsed = calc_time(start_time, end_time) / 1e9;
-      if(elapsed > 100){
+      if(elapsed > 60){
+	cout << "Totally " << numRequest << " requests have been processed." << endl;
         return 0;
       }
     }
@@ -194,7 +202,8 @@ int main(int argc, char * argv[]) {
       //check timing
       clock_gettime(CLOCK_MONOTONIC, &end_time);
       double elapsed = calc_time(start_time, end_time) / 1e9;
-      if(elapsed > 100){
+      if(elapsed > 60){
+	cout << "Totally " << numRequest << " requests have been processed." << endl;
         return 0;
       }
     }

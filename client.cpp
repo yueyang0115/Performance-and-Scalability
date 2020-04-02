@@ -79,6 +79,18 @@ int main(int argc, char * argv[]) {
   int delay_u = atoi(argv[2]);
   int size = atoi(argv[3]);
 
+  //setup client
+  const char * hostname = "0.0.0.0";
+  const char * port = "12345";
+  int socket_fd = build_client(hostname, port);
+  if (socket_fd == -1) {
+    std::cout << "Error in build client!\n";
+  }
+
+  //send bucket size
+  send(socket_fd, &size, sizeof(size), 0);
+  close(socket_fd);
+  
   pthread_t * threads;
   int numThreads = atoi(argv[4]);
   threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
@@ -102,7 +114,8 @@ int main(int argc, char * argv[]) {
     //check timing
     clock_gettime(CLOCK_MONOTONIC, &end_time);
     double elapsed = calc_time(start_time, end_time) / 1e9;
-    if(elapsed > 100){
+    if(elapsed > 60){
+      cout << "Totally " << numRequest << " requests have been sent." << endl;
       return 0;
     }
   }
