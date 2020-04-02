@@ -15,7 +15,6 @@
 
 using namespace std;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-// ./server num_of_cores threading_strategy num_of_buckets
 
 void delayloop(double req_delay) {
   struct timeval start, check;
@@ -53,7 +52,7 @@ void * procOneRequest(void * arg) {
   //add delay count to certain bucket
   pthread_mutex_lock(&mutex);
   bucket[num] += delay;
-  (*numRequest)++;
+  int currReq = ++(*numRequest);
   cout << "Request[" << *numRequest << "] received, "
        << "delay: " << delay << ", number of bucket: " << num << endl;
   pthread_mutex_unlock(&mutex);
@@ -63,7 +62,8 @@ void * procOneRequest(void * arg) {
   const char * response = l2.c_str();
   cout << "bucket[" << num << "]: " << response;
   send(client_fd, response, strlen(response), 0);
-
+  cout << "Request[" << currReq << "] processed" << endl;
+  
   close(client_fd);
   return NULL;
 }
@@ -100,7 +100,7 @@ void * procRequests(void * arg) {
     //add delay count to certain bucket
     pthread_mutex_lock(&mutex);
     bucket[num] += delay;
-    (*numRequest)++;
+    int currReq = ++(*numRequest);
     cout << "Request[" << *numRequest << "] received, "
          << "delay: " << delay << ", number of bucket: " << num << endl;
     pthread_mutex_unlock(&mutex);
@@ -110,24 +110,25 @@ void * procRequests(void * arg) {
     const char * response = l2.c_str();
     cout << "bucket[" << num << "]: " << response;
     send(client_fd, response, strlen(response), 0);
-
+    cout << "Request[" << currReq << "] processed" << endl;
+    
     close(client_fd);
   }
 }
 
+// ./server threading_strategy num_of_buckets
 int main(int argc, char * argv[]) {
-  if (argc != 4) {
+  if (argc != 3) {
     cerr << "Error: incorrect number of arguments" << endl;
     exit(EXIT_FAILURE);
   }
 
-  int cores = atoi(argv[1]);
-  int thrd = atoi(argv[2]);
+  int thrd = atoi(argv[1]);
   if (thrd != CREATE_PER_THREAD && thrd != PRE_CREATE) {
     cerr << "Error: invalid threading strategy" << endl;
     exit(EXIT_FAILURE);
   }
-  int size = atoi(argv[3]);
+  int size = atoi(argv[2]);
   int bucket[size] = {0};
 
   //setup server

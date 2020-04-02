@@ -11,7 +11,8 @@ class Thread_arg {
   int * bucket;
   int client_fd;
   int socket_fd;
-  int delay;
-  int bucketID;
+  int delay_l;
+  int delay_u;
+  int size;
   int * numRequest;
 };

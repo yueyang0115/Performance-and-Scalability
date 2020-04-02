@@ -12,11 +12,11 @@
 using namespace std;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-// ./client delay_count num_of_bucket
 void * sendRequest(void * arg) {
   Thread_arg * thr_arg = (Thread_arg *)arg;
-  int bucket = thr_arg->bucketID;
-  int delay = thr_arg->delay;
+  int size = thr_arg->size;
+  int delay_l = thr_arg->delay_l;
+  int delay_u = thr_arg->delay_u;
   int * numRequest = thr_arg->numRequest;
   //int socket_fd = thr_arg->client_fd;
 
@@ -30,13 +30,14 @@ void * sendRequest(void * arg) {
     }
 
     //send request
-    int random = rand() % bucket;
+    int random = rand() % size;
+    int delay = rand() % (delay_u - delay_l + 1) + delay_l;
     string l1 = to_string(delay) + "," + to_string(random) + "\n";
     const char * request = l1.c_str();
     send(socket_fd, request, strlen(request), 0);
     pthread_mutex_lock(&mutex);
-    (*numRequest)++;
-    cout << "send Request[" << *numRequest << "]: " << request;
+    int currReq = ++(*numRequest);
+    cout << "send Request[" << currReq << "]: " << request;
     pthread_mutex_unlock(&mutex);
     
     //receive response
@@ -49,6 +50,7 @@ void * sendRequest(void * arg) {
 
     string l2 = response;
     double value = stoi(l2);
+    //cout << "Request[" << currReq << "] processed" << endl; 
     cout << "new value in bucket[" << random << "]: " << value << endl;
     close(socket_fd);
   }
@@ -56,25 +58,28 @@ void * sendRequest(void * arg) {
   return NULL;
 }
 
+// ./client delay_l delay_u num_of_buckets num_of_threads
 int main(int argc, char * argv[]) {
-  if (argc != 3) {
+  if (argc != 5) {
     cerr << "Error: incorrect number of arguments" << endl;
     exit(EXIT_FAILURE);
   }
 
-  int delay = atoi(argv[1]);
-  int bucket = atoi(argv[2]);
+  int delay_l = atoi(argv[1]);
+  int delay_u = atoi(argv[2]);
+  int size = atoi(argv[3]);
 
   pthread_t * threads;
-  int numThreads = 1000;
+  int numThreads = atoi(argv[4]);
   threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
   int numRequest = 0;
   srand((unsigned int)time(NULL));
   for (int i = 0; i < numThreads; i++) {
     Thread_arg * thr_arg = new Thread_arg();
-    thr_arg->delay = delay;
-    thr_arg->bucketID = bucket;
+    thr_arg->delay_l = delay_l;
+    thr_arg->delay_u = delay_u;
+    thr_arg->size = size;
     thr_arg->numRequest = &numRequest;
     pthread_create(&threads[i], NULL, sendRequest, thr_arg);
   }
