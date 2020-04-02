@@ -7,7 +7,7 @@
 #include <cstring>
 #include <iostream>
 
-#include "function.h"
+#include "socket.h"
 #include "thread_arg.h"
 
 #define CREATE_PER_THREAD 0
