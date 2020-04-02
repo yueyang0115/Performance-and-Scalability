@@ -3,7 +3,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
-
+#include <time.h>
 #include <cstring>
 #include <iostream>
 
@@ -25,6 +25,17 @@ void delayloop(double req_delay) {
     elapsed_seconds = (check.tv_sec + (check.tv_usec / 1000000.0)) -
                       (start.tv_sec + (start.tv_usec / 1000000.0));
   } while (elapsed_seconds < req_delay);
+}
+
+double calc_time(struct timespec start, struct timespec end) {
+  double start_sec = (double)start.tv_sec*1000000000.0 + (double)start.tv_nsec;
+  double end_sec = (double)end.tv_sec*1000000000.0 + (double)end.tv_nsec;
+
+  if (end_sec < start_sec) {
+    return 0;
+  } else {
+    return end_sec - start_sec;
+  }
 }
 
 void * procOneRequest(void * arg) {
@@ -136,9 +147,13 @@ int main(int argc, char * argv[]) {
   string ip;
   int numThreads = 2000;
   int numRequest = 0;
+  server_accept(socket_fd, &ip);
+
+  //start timing
+  struct timespec start_time, end_time;
+  clock_gettime(CLOCK_MONOTONIC, &start_time);
   
   if (thrd == CREATE_PER_THREAD) {
-    //int i = 0;
     while (1) {
       //connect with each client
       int client_fd = server_accept(socket_fd, &ip);
@@ -146,7 +161,6 @@ int main(int argc, char * argv[]) {
         cout << "Error in build server!\n";
         continue;
       }
-      
       //handle request
       pthread_t thread;
       Thread_arg * thr_arg = new Thread_arg();
@@ -155,12 +169,18 @@ int main(int argc, char * argv[]) {
       thr_arg->numRequest = &numRequest;
       pthread_create(&thread, NULL, procOneRequest, thr_arg);
       pthread_detach(thread);
-      //i++;
+
+      //check timing
+      clock_gettime(CLOCK_MONOTONIC, &end_time);
+      double elapsed = calc_time(start_time, end_time) / 1e9;
+      if(elapsed > 100){
+        return 0;
+      }
     }
   }
 
   if (thrd == PRE_CREATE) {
-    int numThreads = 500;
+    int numThreads = 1000;
     pthread_t * threads;
     threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
     Thread_arg * thr_arg = new Thread_arg();
@@ -169,6 +189,14 @@ int main(int argc, char * argv[]) {
     thr_arg->numRequest = &numRequest;
     for (int i = 0; i < numThreads; i++) {
       pthread_create(&threads[i], NULL, procRequests, thr_arg);
+    }
+    while(1){
+      //check timing
+      clock_gettime(CLOCK_MONOTONIC, &end_time);
+      double elapsed = calc_time(start_time, end_time) / 1e9;
+      if(elapsed > 100){
+        return 0;
+      }
     }
     for (int i = 0; i < numThreads; i++) {
       pthread_join(threads[i], NULL);

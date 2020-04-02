@@ -16,3 +16,4 @@ class Thread_arg {
   int size;
   int * numRequest;
 };
+

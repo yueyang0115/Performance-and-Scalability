@@ -1,7 +1,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
+#include <time.h>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -12,14 +12,24 @@
 using namespace std;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
+double calc_time(struct timespec start, struct timespec end) {
+  double start_sec = (double)start.tv_sec*1000000000.0 + (double)start.tv_nsec;
+  double end_sec = (double)end.tv_sec*1000000000.0 + (double)end.tv_nsec;
+
+  if (end_sec < start_sec) {
+    return 0;
+  } else {
+    return end_sec - start_sec;
+  }
+}
+
 void * sendRequest(void * arg) {
   Thread_arg * thr_arg = (Thread_arg *)arg;
   int size = thr_arg->size;
   int delay_l = thr_arg->delay_l;
   int delay_u = thr_arg->delay_u;
   int * numRequest = thr_arg->numRequest;
-  //int socket_fd = thr_arg->client_fd;
-
+  
   while (1) {
     //setup client
     const char * hostname = "0.0.0.0";
@@ -75,6 +85,11 @@ int main(int argc, char * argv[]) {
 
   int numRequest = 0;
   srand((unsigned int)time(NULL));
+
+  //start timing
+  struct timespec start_time, end_time;
+  clock_gettime(CLOCK_MONOTONIC, &start_time);
+  
   for (int i = 0; i < numThreads; i++) {
     Thread_arg * thr_arg = new Thread_arg();
     thr_arg->delay_l = delay_l;
@@ -83,7 +98,16 @@ int main(int argc, char * argv[]) {
     thr_arg->numRequest = &numRequest;
     pthread_create(&threads[i], NULL, sendRequest, thr_arg);
   }
+  while(1){
+    //check timing
+    clock_gettime(CLOCK_MONOTONIC, &end_time);
+    double elapsed = calc_time(start_time, end_time) / 1e9;
+    if(elapsed > 100){
+      return 0;
+    }
+  }
   for (int i = 0; i < numThreads; i++) {
+    cout << i << endl;
     pthread_join(threads[i], NULL);
   }
 
