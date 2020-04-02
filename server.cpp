@@ -32,7 +32,8 @@ void * procOneRequest(void * arg) {
   Thread_arg * thr_arg = (Thread_arg *)arg;
   int client_fd = thr_arg->client_fd;
   int * bucket = thr_arg->bucket;
-
+  int * numRequest = thr_arg->numRequest;
+  
   //receive request
   char request[20];
   memset(request, 0, sizeof(request));
@@ -45,21 +46,22 @@ void * procOneRequest(void * arg) {
   string l1 = request;
   double delay = stoi(l1);
   int num = stoi(l1.substr(l1.find(",") + 1));
-  cout << "request received, "
-       << "delay: " << delay << ", number of bucket: " << num << endl;
-
+  
   //delay loop
   delayloop(delay);
 
   //add delay count to certain bucket
   pthread_mutex_lock(&mutex);
   bucket[num] += delay;
+  (*numRequest)++;
+  cout << "Request[" << *numRequest << "] received, "
+       << "delay: " << delay << ", number of bucket: " << num << endl;
   pthread_mutex_unlock(&mutex);
 
   //send response back
   string l2 = to_string(bucket[num]) + "\n";
   const char * response = l2.c_str();
-  cout << "response: [" << num << "]" << response;
+  cout << "bucket[" << num << "]: " << response;
   send(client_fd, response, strlen(response), 0);
 
   close(client_fd);
@@ -71,10 +73,11 @@ void * procRequests(void * arg) {
     Thread_arg * thr_arg = (Thread_arg *)arg;
     int * bucket = thr_arg->bucket;
     int socket_fd = thr_arg->socket_fd;
+    int * numRequest = thr_arg->numRequest;
     string ip;
     int client_fd = server_accept(socket_fd, &ip);
     if (client_fd == -1) {
-      std::cout << "Error in build server!\n";
+      cout << "Error in build server!\n";
       exit(EXIT_FAILURE);
     }
 
@@ -90,21 +93,22 @@ void * procRequests(void * arg) {
     string l1 = request;
     double delay = stoi(l1);
     int num = stoi(l1.substr(l1.find(",") + 1));
-    cout << "request received, "
-         << "delay: " << delay << ", number of bucket: " << num << endl;
-
+    
     //delay loop
     delayloop(delay);
 
     //add delay count to certain bucket
     pthread_mutex_lock(&mutex);
     bucket[num] += delay;
+    (*numRequest)++;
+    cout << "Request[" << *numRequest << "] received, "
+         << "delay: " << delay << ", number of bucket: " << num << endl;
     pthread_mutex_unlock(&mutex);
 
     //send response back
     string l2 = to_string(bucket[num]) + "\n";
     const char * response = l2.c_str();
-    cout << "response: [" << num << "]" << response;
+    cout << "bucket[" << num << "]: " << response;
     send(client_fd, response, strlen(response), 0);
 
     close(client_fd);
@@ -130,26 +134,27 @@ int main(int argc, char * argv[]) {
   int socket_fd = build_server("12345");
   string ip;
   int numThreads = 2000;
-
+  int numRequest = 0;
+  
   if (thrd == CREATE_PER_THREAD) {
-    int i = 0;
+    //int i = 0;
     while (1) {
       //connect with each client
       int client_fd = server_accept(socket_fd, &ip);
       if (client_fd == -1) {
-        std::cout << "Error in build server!\n";
+        cout << "Error in build server!\n";
         continue;
       }
-      cout << "socket " << i << " created" << endl;
-
+      
       //handle request
       pthread_t thread;
       Thread_arg * thr_arg = new Thread_arg();
       thr_arg->client_fd = client_fd;
       thr_arg->bucket = bucket;
+      thr_arg->numRequest = &numRequest;
       pthread_create(&thread, NULL, procOneRequest, thr_arg);
       pthread_detach(thread);
-      i++;
+      //i++;
     }
   }
 
@@ -160,6 +165,7 @@ int main(int argc, char * argv[]) {
     Thread_arg * thr_arg = new Thread_arg();
     thr_arg->bucket = bucket;
     thr_arg->socket_fd = socket_fd;
+    thr_arg->numRequest = &numRequest;
     for (int i = 0; i < numThreads; i++) {
       pthread_create(&threads[i], NULL, procRequests, thr_arg);
     }

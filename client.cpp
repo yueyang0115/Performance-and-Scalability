@@ -10,14 +10,14 @@
 #include "socket.h"
 #include "thread_arg.h"
 using namespace std;
-//pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // ./client delay_count num_of_bucket
 void * sendRequest(void * arg) {
   Thread_arg * thr_arg = (Thread_arg *)arg;
   int bucket = thr_arg->bucketID;
   int delay = thr_arg->delay;
-  //int threadID = thr_arg->threadID;
+  int * numRequest = thr_arg->numRequest;
   //int socket_fd = thr_arg->client_fd;
 
   while (1) {
@@ -29,15 +29,16 @@ void * sendRequest(void * arg) {
       std::cout << "Error in build client!\n";
     }
 
-    //cout << "create a thread, ID is : " << i << endl;
-
     //send request
     int random = rand() % bucket;
     string l1 = to_string(delay) + "," + to_string(random) + "\n";
     const char * request = l1.c_str();
-    cout << " sends Request: " << request;
     send(socket_fd, request, strlen(request), 0);
-
+    pthread_mutex_lock(&mutex);
+    (*numRequest)++;
+    cout << "send Request[" << *numRequest << "]: " << request;
+    pthread_mutex_unlock(&mutex);
+    
     //receive response
     char response[20];
     memset(response, 0, sizeof(request));
@@ -65,19 +66,17 @@ int main(int argc, char * argv[]) {
   int bucket = atoi(argv[2]);
 
   pthread_t * threads;
-  int numThreads = 200;
+  int numThreads = 1000;
   threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
+  int numRequest = 0;
   srand((unsigned int)time(NULL));
   for (int i = 0; i < numThreads; i++) {
     Thread_arg * thr_arg = new Thread_arg();
     thr_arg->delay = delay;
     thr_arg->bucketID = bucket;
-    //thr_arg->threadID = i;
-    //thr_arg->client_fd = socket_fd;
-
+    thr_arg->numRequest = &numRequest;
     pthread_create(&threads[i], NULL, sendRequest, thr_arg);
-    //pthread_detach(threads[i]);
   }
   for (int i = 0; i < numThreads; i++) {
     pthread_join(threads[i], NULL);
