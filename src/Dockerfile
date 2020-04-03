@@ -4,4 +4,4 @@ RUN mkdir -p /code
 WORKDIR /code
 add . /code/
 
-ENTRYPOINT ["./run.sh"]
+ENTRYPOINT ["taskset --cpu-list 0-3 ./run.sh"]

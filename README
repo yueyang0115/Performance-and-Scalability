@@ -1,0 +1,25 @@
+To run the server code:
+sudo docker-compose up
+
+You may alter the server-side threading strategy by modifying the last line in src/run.sh
+The argument after ./server indicates the threading strategy:
+create a thread per request -> 0
+precreate a set of threads -> 1
+
+You may also alter the number of active cores by modifyting the last line in src/Dockerfile
+ENTRYPOINT ["taskset --cpu-list 0 ./run.sh"] -> 1 core active
+ENTRYPOINT ["taskset --cpu-list 0-1 ./run.sh"] -> 2 cores active
+ENTRYPOINT ["taskset --cpu-list 0-3 ./run.sh"] -> 4 cores active
+
+
+
+Client code must be run after server code
+
+To the client code (tesing infrastructure) :
+cd testing
+./client hostname delay_lower delay_upper bucket_size num_of_threads
+
+You may try the following commands in the testing directory:
+./client vcm-xxxxx.vm.duke.edu 1 3 32 1000
+./client vcm-xxxxx.vm.duke.edu 1 3 512 1000
+./client vcm-xxxxx.vm.duke.edu 1 20 32 1000
