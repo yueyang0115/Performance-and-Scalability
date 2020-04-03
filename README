@@ -10,7 +10,7 @@ The argument after "taskset --cpu-list" indicates which cores to use
 The argument after "./server" indicates the threading strategy
 
 Examples:
-taskset --cpu-list 0 ./server 0 -> 1 core active, create a thread per request
+taskset --cpu-list 0 ./server 0   -> 1 core active, create a thread per request
 taskset --cpu-list 0-1 ./server 0 -> 2 cores active, create a thread per request
 taskset --cpu-list 0-1 ./server 1 -> 2 cores active, pre-create a set of threads
 taskset --cpu-list 0-3 ./server 1 -> 4 cores active, pre-create a set of threads
