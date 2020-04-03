@@ -1,9 +1,8 @@
-TARGETS=server
+TARGETS=client
 
 all: $(TARGETS)
 clean:
 	rm -f $(TARGETS)
 
-server: server.cpp thread_arg.h
+client: client.cpp thread_arg.h
 	g++ -g -o $@ $< socket.cpp -lpthread
-
