@@ -15,5 +15,5 @@ class Thread_arg {
   int delay_u;
   int size;
   int * numRequest;
+  const char * hostname;
 };
-

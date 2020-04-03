@@ -1,7 +1,8 @@
 #include <netdb.h>
 #include <sys/socket.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
+
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -13,12 +14,13 @@ using namespace std;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 double calc_time(struct timespec start, struct timespec end) {
-  double start_sec = (double)start.tv_sec*1000000000.0 + (double)start.tv_nsec;
-  double end_sec = (double)end.tv_sec*1000000000.0 + (double)end.tv_nsec;
+  double start_sec = (double)start.tv_sec * 1000000000.0 + (double)start.tv_nsec;
+  double end_sec = (double)end.tv_sec * 1000000000.0 + (double)end.tv_nsec;
 
   if (end_sec < start_sec) {
     return 0;
-  } else {
+  }
+  else {
     return end_sec - start_sec;
   }
 }
@@ -29,10 +31,11 @@ void * sendRequest(void * arg) {
   int delay_l = thr_arg->delay_l;
   int delay_u = thr_arg->delay_u;
   int * numRequest = thr_arg->numRequest;
-  
+  const char * hostname = thr_arg->hostname;
+
   while (1) {
     //setup client
-    const char * hostname = "0.0.0.0";
+    // const char * hostname = "0.0.0.0";
     const char * port = "12345";
     int socket_fd = build_client(hostname, port);
     if (socket_fd == -1) {
@@ -49,7 +52,7 @@ void * sendRequest(void * arg) {
     int currReq = ++(*numRequest);
     cout << "send Request[" << currReq << "]: " << request;
     pthread_mutex_unlock(&mutex);
-    
+
     //receive response
     char response[20];
     memset(response, 0, sizeof(request));
@@ -60,7 +63,7 @@ void * sendRequest(void * arg) {
 
     string l2 = response;
     double value = stoi(l2);
-    //cout << "Request[" << currReq << "] processed" << endl; 
+    //cout << "Request[" << currReq << "] processed" << endl;
     cout << "new value in bucket[" << random << "]: " << value << endl;
     close(socket_fd);
   }
@@ -70,17 +73,18 @@ void * sendRequest(void * arg) {
 
 // ./client delay_l delay_u num_of_buckets num_of_threads
 int main(int argc, char * argv[]) {
-  if (argc != 5) {
+  if (argc != 6) {
     cerr << "Error: incorrect number of arguments" << endl;
     exit(EXIT_FAILURE);
   }
 
-  int delay_l = atoi(argv[1]);
-  int delay_u = atoi(argv[2]);
-  int size = atoi(argv[3]);
+  const char * hostname = argv[1];
+  int delay_l = atoi(argv[2]);
+  int delay_u = atoi(argv[3]);
+  int size = atoi(argv[4]);
 
   //setup client
-  const char * hostname = "0.0.0.0";
+  //const char * hostname = "0.0.0.0";
   const char * port = "12345";
   int socket_fd = build_client(hostname, port);
   if (socket_fd == -1) {
@@ -90,7 +94,7 @@ int main(int argc, char * argv[]) {
   //send bucket size
   send(socket_fd, &size, sizeof(size), 0);
   close(socket_fd);
-  
+
   pthread_t * threads;
   int numThreads = atoi(argv[4]);
   threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
@@ -101,20 +105,21 @@ int main(int argc, char * argv[]) {
   //start timing
   struct timespec start_time, end_time;
   clock_gettime(CLOCK_MONOTONIC, &start_time);
-  
+
   for (int i = 0; i < numThreads; i++) {
     Thread_arg * thr_arg = new Thread_arg();
+    thr_arg->hostname = hostname;
     thr_arg->delay_l = delay_l;
     thr_arg->delay_u = delay_u;
     thr_arg->size = size;
     thr_arg->numRequest = &numRequest;
     pthread_create(&threads[i], NULL, sendRequest, thr_arg);
   }
-  while(1){
+  while (1) {
     //check timing
     clock_gettime(CLOCK_MONOTONIC, &end_time);
     double elapsed = calc_time(start_time, end_time) / 1e9;
-    if(elapsed > 60){
+    if (elapsed > 60) {
       cout << "Totally " << numRequest << " requests have been sent." << endl;
       return 0;
     }
