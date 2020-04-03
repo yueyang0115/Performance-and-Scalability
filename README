@@ -3,15 +3,16 @@ ERSS Homework4 Scalability
 To run the server code:
 sudo docker-compose up
 
-You may alter the server-side threading strategy by modifying the last line in src/run.sh
-The argument after ./server indicates the threading strategy:
-create a thread per request -> 0
-precreate a set of threads -> 1
+You may alter the server-side threading strategy
+and the number of active cores by modifying the last line in src/run.sh:
+The argument after "taskset --cpu-list" indicates which cores to use
+The argument after "./server" indicates the threading strategy
 
-You may also alter the number of active cores by modifyting the last line in src/Dockerfile
-ENTRYPOINT ["taskset --cpu-list 0 ./run.sh"] -> 1 core active
-ENTRYPOINT ["taskset --cpu-list 0-1 ./run.sh"] -> 2 cores active
-ENTRYPOINT ["taskset --cpu-list 0-3 ./run.sh"] -> 4 cores active
+Examples:
+taskset --cpu-list 0 ./server 0 -> 1 core active, create a thread per request
+taskset --cpu-list 0-1 ./server 0 -> 2 cores active, create a thread per request
+taskset --cpu-list 0-1 ./server 1 -> 2 cores active, pre-create a set of threads
+taskset --cpu-list 0-3 ./server 1 -> 4 cores active, pre-create a set of threads
 
 
 
