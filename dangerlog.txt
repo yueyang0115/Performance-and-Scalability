@@ -1,0 +1,16 @@
+Problems we solved:
+
+1: Multi-Thread
+After we progrmmed our client-side code, we found that the runtime of our original program doesn't change much. We figured out that in our client-side code, the client didn't send next request until it received the response of last requets. To solve this problem, we added multi-thread programming in our client code. The client now keep sending requests without waiting for response.
+
+2: Pre-Create Strategy
+For pre-create strategy, at first we thought about using some thread_pool library and we tried to use boost library. After going to the office hour, we figured out the difference between the pre-create strategy and create per request strategy and we succeffuly implemented it. The deatils of implementaion can be found in our report.pdf.
+
+3: Generate Enough Load
+To do load testing, we need to generate enough load to server side. We are not sure about how many requests sending per second can generate enough load. After several times of testing and analyzing test results, we found that 1000 threads in client-side code sending requests together can generate enough load.
+
+4: Estimate Throughput
+Since our client-side keeps sending request to generate enough load and our server-side keeps handling request, it is hard for us to estimate the throughput of our program. So in our client-side, we make our program to run for one minute and then exit. In our server-side, we count the number of handled requests to estimate throughput.
+
+5: Running in 4-core machine:
+At first, we run both of our server-side code and client-side code in the 4-core vcm. After going to office hour, we realized that we should only run our server-side code in 4-core vcm. After we changed to that, we got bigger throughput.
