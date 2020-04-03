@@ -71,7 +71,7 @@ void * sendRequest(void * arg) {
   return NULL;
 }
 
-// ./client delay_l delay_u num_of_buckets num_of_threads
+// ./client hostname delay_l delay_u num_of_buckets num_of_threads
 int main(int argc, char * argv[]) {
   if (argc != 6) {
     cerr << "Error: incorrect number of arguments" << endl;
@@ -96,7 +96,7 @@ int main(int argc, char * argv[]) {
   close(socket_fd);
 
   pthread_t * threads;
-  int numThreads = atoi(argv[4]);
+  int numThreads = atoi(argv[5]);
   threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
 
   int numRequest = 0;
