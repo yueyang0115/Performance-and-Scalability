@@ -1,4 +1,4 @@
 #!/bin/bash
 make clean
 make
-./server 0
+taskset --cpu-list 0-1 ./server 0

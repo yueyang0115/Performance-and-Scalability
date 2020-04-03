@@ -35,7 +35,6 @@ void * sendRequest(void * arg) {
 
   while (1) {
     //setup client
-    // const char * hostname = "0.0.0.0";
     const char * port = "12345";
     int socket_fd = build_client(hostname, port);
     if (socket_fd == -1) {
@@ -63,7 +62,6 @@ void * sendRequest(void * arg) {
 
     string l2 = response;
     double value = stoi(l2);
-    //cout << "Request[" << currReq << "] processed" << endl;
     cout << "new value in bucket[" << random << "]: " << value << endl;
     close(socket_fd);
   }
@@ -84,7 +82,6 @@ int main(int argc, char * argv[]) {
   int size = atoi(argv[4]);
 
   //setup client
-  //const char * hostname = "0.0.0.0";
   const char * port = "12345";
   int socket_fd = build_client(hostname, port);
   if (socket_fd == -1) {

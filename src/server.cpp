@@ -141,7 +141,6 @@ int main(int argc, char * argv[]) {
     cerr << "Error: invalid threading strategy" << endl;
     exit(EXIT_FAILURE);
   }
-  //int size = atoi(argv[2]);
 
   //setup server
   int socket_fd = build_server("12345");
